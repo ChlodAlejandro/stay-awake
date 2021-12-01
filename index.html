@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="utf8">
+        <title>Stay Awake!</title>
+        
+        <meta name="twitter:card" content="summary"/>
+        <meta name="twitter:creator" content="ChlodAlejandro"/>
+        <meta name="twitter:image" content="https://chlod.net/images/logo.png"/>
+        
+        <meta name="og:title" property="og:title" content="Stay Awake!" />
+        <meta name="og:description" property="og:description" content="Extremely basic periodic awareness check.">
+        <meta name="og:image" property="og:image" content="https://chlod.net/images/logo-black.png"/>
+
+        <link rel="shortcut" type="image/png" href="https://chlod.net/images/logo-transparent.png">
+        <link rel="icon" type="image/png" href="https://chlod.net/images/logo-transparent.png">
+        <script>
+            window.cs_links = {
+                "Main": "https://chlod.net",
+                "Random": "https://random.chlod.net",
+            };
+            window.cs_license = "apache-2.0";
+        </script>
+        <script src="https://static.chlod.net/js/footer.js" defer></script>
+        
+        <style>
+            body {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+
+                background-color: #101010;
+                color: white;
+                font-family: "Arial", "Helvetica", sans-serif;
+
+                font-size: 4rem;
+                min-height: 100vh;
+                margin: 0;
+                
+                user-select: none;
+            }
+
+            h1 {
+                margin: 0;
+            }
+
+            h2 {
+                font-size: 1.4rem;
+                font-weight: normal;
+            }
+            
+            #block {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                width: 100vw;
+                background-color: #101010;
+                text-align: center;
+                cursor: pointer;
+            }
+            
+            #cs_footer {
+                position: fixed;
+                bottom: 0;
+                padding-top: 0 !important;
+                padding-bottom: 32px !important;
+                background-color: unset !important;
+            }
+        </style>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    </head>
+
+    <body>
+        <div id="block">
+            <h1 style="line-height: 100vh">Click to begin.</h1>
+        </div>
+        <h1 id="a"></h1>
+        <h2 id="b"></h2>
+
+        <script>
+            var e1 = document.getElementById("a");
+            var e2 = document.getElementById("b");
+            var block = document.getElementById("block");
+
+            var timeout = 900000;
+            // var timeout = 5000;
+            var lastMove = Date.now();
+
+            var stage = 0;
+
+            var start = new Audio("siren-start.wav");
+            var loop = new Audio("siren-loop.wav");
+
+            start.loop = false;
+
+            start.addEventListener("play", () => {
+                stage = 1;
+            }, false);
+
+            start.addEventListener("ended", function () {
+                if (stage === 1) loop.play();
+                this.pause();
+                this.currentTime = 0;
+            }, false);
+
+            loop.addEventListener("play", () => {
+                stage = 2;
+            }, false);
+
+            loop.addEventListener("ended", function () {
+                if (stage === 2) this.play();
+            }, false);
+
+            document.body.onmousemove = () => {
+                lastMove = Date.now();
+
+                stage = 0;
+                start.pause();
+                start.currentTime = 0;
+                loop.pause();
+                loop.currentTime = 0;
+            }
+
+            function updateScreenState(state) {
+                switch (state) {
+                    case 0: {
+                        document.body.style.backgroundColor = "";
+                        e1.innerText = "Keep working.";
+                        if (Date.now() > lastMove + timeout - 60000) {
+                            e2.innerText = `Come back and hover over this page within the next ${
+                                Math.abs((Date.now() - (lastMove + timeout)) / 1000).toFixed(1)
+                            } seconds.`;
+                        } else {
+                            e2.innerText = `Come back and hover over this page within the next ${
+                                moment(lastMove + timeout).fromNow()
+                            }.`;
+                        }
+                        break;
+                    }
+                    case 1: {
+                        document.body.style.backgroundColor = "red";
+                        e1.innerText = "WAKE UP!";
+                        if (Date.now() < lastMove + timeout + 60000) {
+                            e2.innerText = `Input not received for ${
+                                Math.abs((Date.now() - (lastMove + timeout)) / 1000).toFixed(1)
+                            } seconds.`;
+                        } else {
+                            e2.innerText = `Input not received for ${
+                                moment.duration(Date.now() - (lastMove + timeout), "ms").humanize()
+                            }.`;
+                        }
+                        break;
+                    }
+                }
+            }
+            
+            updateScreenState(0);
+            block.addEventListener("click", () => {
+                setInterval(() => {
+                    if (Date.now() > lastMove + timeout) {
+                        updateScreenState(1);
+                        if (stage === 0) start.play();
+                    } else {
+                        updateScreenState(0);
+                    }
+                }, 10);
+                lastMove = Date.now();
+                block.parentElement.removeChild(block);
+            });
+        </script>
+    </body>
+
+</html>
