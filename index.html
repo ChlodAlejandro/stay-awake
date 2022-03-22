@@ -136,7 +136,7 @@
                             } seconds.`;
                         } else {
                             e2.innerText = `Come back and hover over this page within the next ${
-                                moment(lastMove + timeout).fromNow()
+                                moment(lastMove + timeout).fromNow(true)
                             }.`;
                         }
                         break;
